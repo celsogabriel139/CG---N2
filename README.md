@@ -1,4 +1,4 @@
-# Projeto de Computação Gráfica – README
+# Projeto de Computação Gráfica
 
 Este documento descreve o funcionamento, organização e principais componentes do projeto em HTML/JavaScript que implementa:
 
