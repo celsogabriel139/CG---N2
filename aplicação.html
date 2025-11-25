@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto de Computação Gráfica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: rgba(255,255,255,0.4);
+            border-color: #fff;
+        }
+        
+        .tab-content {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 25px;
+            color: #333;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .canvas-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        canvas {
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: #fff;
+            cursor: crosshair;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .control-group h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .control-item {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="number"], input[type="range"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .point-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .point-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .point-item:hover {
+            background: #e9ecef;
+        }
+        
+        .range-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        #canvas3d {
+            width: 100%;
+            height: 600px;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Projeto de Computação Gráfica</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(0)">Curvas de Bézier</button>
+            <button class="tab-btn" onclick="switchTab(1)">Curvas Spline</button>
+            <button class="tab-btn" onclick="switchTab(2)">Superfície de Revolução</button>
+            <button class="tab-btn" onclick="switchTab(3)">🐦 Alus - Voo de Fibonacci</button>
+        </div>
+        
+        <!-- TAB 1: Bézier -->
+        <div class="tab-content active">
+            <div class="info-box">
+                <h4>Curvas de Bézier</h4>
+                <p>Clique no canvas para adicionar pontos de controle. Arraste os pontos para movê-los. Use os controles para ajustar pesos e parâmetros.</p>
+            </div>
+            <div class="canvas-container">
+                <canvas id="bezierCanvas" width="700" height="500"></canvas>
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>Controles</h3>
+                        <button onclick="clearBezier()">Limpar Pontos</button>
+                        <button onclick="exportBezier()">Exportar JSON</button>
+                    </div>
+                    <div class="control-group">
+                        <h3>Pontos de Controle</h3>
+                        <div id="bezierPoints" class="point-list"></div>
+                    </div>
+                    <div class="control-group">
+                        <h3>Parâmetros</h3>
+                        <div class="control-item">
+                            <label>Resolução da Curva: <span class="range-value" id="bezierResValue">50</span></label>
+                            <input type="range" id="bezierRes" min="10" max="200" value="50" oninput="updateBezierRes(this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB 2: Spline -->
+        <div class="tab-content">
+            <div class="info-box">
+                <h4>Curvas B-Spline</h4>
+                <p>Clique no canvas para adicionar pontos de controle. A curva B-Spline oferece controle local e suavidade C².</p>
+            </div>
+            <div class="canvas-container">
+                <canvas id="splineCanvas" width="700" height="500"></canvas>
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>Controles</h3>
+                        <button onclick="clearSpline()">Limpar Pontos</button>
+                        <button onclick="copyFromBezier()">Copiar de Bézier</button>
+                        <button onclick="exportSpline()">Exportar JSON</button>
+                    </div>
+                    <div class="control-group">
+                        <h3>Pontos de Controle</h3>
+                        <div id="splinePoints" class="point-list"></div>
+                    </div>
+                    <div class="control-group">
+                        <h3>Parâmetros</h3>
+                        <div class="control-item">
+                            <label>Grau da Curva:</label>
+                            <select id="splineDegree" onchange="drawSpline()">
+                                <option value="2">2 (Quadrática)</option>
+                                <option value="3" selected>3 (Cúbica)</option>
+                                <option value="4">4 (Quártica)</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label>Resolução: <span class="range-value" id="splineResValue">100</span></label>
+                            <input type="range" id="splineRes" min="20" max="300" value="100" oninput="updateSplineRes(this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB 3: Revolução -->
+        <div class="tab-content">
+            <div class="info-box">
+                <h4>Superfície de Revolução</h4>
+                <p>Desenhe um perfil 2D no canvas e veja-o girar em 3D! Use os controles para ajustar a revolução.</p>
+            </div>
+            <div class="canvas-container">
+                <canvas id="profileCanvas" width="400" height="500"></canvas>
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>Perfil 2D</h3>
+                        <button onclick="clearProfile()">Limpar Perfil</button>
+                        <button onclick="generateSurface()">Gerar Superfície 3D</button>
+                        <button onclick="exportSurface()">Exportar OBJ</button>
+                    </div>
+                    <div class="control-group">
+                        <h3>Parâmetros de Revolução</h3>
+                        <div class="control-item">
+                            <label>Eixo de Revolução:</label>
+                            <select id="revAxis">
+                                <option value="y" selected>Y (Vertical)</option>
+                                <option value="x">X (Horizontal)</option>
+                                <option value="z">Z (Profundidade)</option>
+                            </select>
+                        </div>
+                        <div class="control-item">
+                            <label>Ângulo: <span class="range-value" id="revAngleValue">360</span>°</label>
+                            <input type="range" id="revAngle" min="45" max="360" value="360" oninput="updateRevAngle(this.value)">
+                        </div>
+                        <div class="control-item">
+                            <label>Subdivisões: <span class="range-value" id="revSubdivValue">32</span></label>
+                            <input type="range" id="revSubdiv" min="8" max="64" value="32" oninput="updateRevSubdiv(this.value)">
+                        </div>
+                        <div class="control-item">
+                            <label>Tipo de Curva:</label>
+                            <select id="curveType">
+                                <option value="bezier">Bézier</option>
+                                <option value="spline">B-Spline</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="canvas3dContainer" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- TAB 4: Alus -->
+        <div class="tab-content">
+            <div class="info-box">
+                <h4>🐦 O Voo de Alus - Pássaro de Fibonacci</h4>
+                <p>Alus só consegue voar em espiral! Assista sua jornada mágica seguindo a sequência de Fibonacci.</p>
+            </div>
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Controles de Voo</h3>
+                    <button onclick="startAlusFlight()">▶️ Iniciar Voo</button>
+                    <button onclick="pauseAlusFlight()">⏸️ Pausar</button>
+                    <button onclick="resetAlusFlight()">🔄 Reiniciar</button>
+                </div>
+                <div class="control-group">
+                    <h3>Parâmetros</h3>
+                    <div class="control-item">
+                        <label>Ciclos de Fibonacci: <span class="range-value" id="alusCyclesValue">75</span></label>
+                        <input type="range" id="alusCycles" min="20" max="100" value="75" oninput="updateAlusCycles(this.value)">
+                    </div>
+                    <div class="control-item">
+                        <label>Direção de Giro:</label>
+                        <select id="alusDirection" onchange="updateAlusDirection()">
+                            <option value="left">Esquerda</option>
+                            <option value="right">Direita</option>
+                        </select>
+                    </div>
+                    <div class="control-item">
+                        <label>Velocidade: <span class="range-value" id="alusSpeedValue">1.0</span>x</label>
+                        <input type="range" id="alusSpeed" min="0.5" max="3" step="0.1" value="1.0" oninput="updateAlusSpeed(this.value)">
+                    </div>
+                    <div class="control-item">
+                        <label>Altura Máxima: <span class="range-value" id="alusHeightValue">50</span></label>
+                        <input type="range" id="alusHeight" min="20" max="100" value="50" oninput="updateAlusHeight(this.value)">
+                    </div>
+                </div>
+            </div>
+            <div id="alusCanvas3dContainer" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // ============= UTILITIES =============
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+                contents[i].classList.toggle('active', i === index);
+            });
+            if (index === 2 && scene3d) {
+                animate3d();
+            }
+            if (index === 3 && alusScene) {
+                animateAlus();
+            }
+        }
+        
+        // ============= BÉZIER CURVES =============
+        const bezierCanvas = document.getElementById('bezierCanvas');
+        const bezierCtx = bezierCanvas.getContext('2d');
+        let bezierPoints = [];
+        let bezierWeights = [];
+        let bezierDragging = null;
+        let bezierResolution = 50;
+        
+        bezierCanvas.addEventListener('mousedown', (e) => {
+            const rect = bezierCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            for (let i = 0; i < bezierPoints.length; i++) {
+                const p = bezierPoints[i];
+                if (Math.hypot(p.x - x, p.y - y) < 8) {
+                    bezierDragging = i;
+                    return;
+                }
+            }
+            
+            bezierPoints.push({x, y});
+            bezierWeights.push(1.0);
+            drawBezier();
+            updateBezierPointsList();
+        });
+        
+        bezierCanvas.addEventListener('mousemove', (e) => {
+            if (bezierDragging !== null) {
+                const rect = bezierCanvas.getBoundingClientRect();
+                bezierPoints[bezierDragging].x = e.clientX - rect.left;
+                bezierPoints[bezierDragging].y = e.clientY - rect.top;
+                drawBezier();
+                updateBezierPointsList();
+            }
+        });
+        
+        bezierCanvas.addEventListener('mouseup', () => {
+            bezierDragging = null;
+        });
+        
+        function deCasteljau(points, weights, t) {
+            if (points.length === 0) return null;
+            if (points.length === 1) return points[0];
+            
+            const n = points.length;
+            let temp = points.map((p, i) => ({
+                x: p.x * weights[i],
+                y: p.y * weights[i],
+                w: weights[i]
+            }));
+            
+            for (let r = 1; r < n; r++) {
+                for (let i = 0; i < n - r; i++) {
+                    temp[i] = {
+                        x: (1 - t) * temp[i].x + t * temp[i + 1].x,
+                        y: (1 - t) * temp[i].y + t * temp[i + 1].y,
+                        w: (1 - t) * temp[i].w + t * temp[i + 1].w
+                    };
+                }
+            }
+            
+            return {
+                x: temp[0].x / temp[0].w,
+                y: temp[0].y / temp[0].w
+            };
+        }
+        
+        function drawBezier() {
+            bezierCtx.clearRect(0, 0, bezierCanvas.width, bezierCanvas.height);
+            
+            if (bezierPoints.length < 2) {
+                bezierPoints.forEach((p, i) => {
+                    bezierCtx.fillStyle = '#667eea';
+                    bezierCtx.beginPath();
+                    bezierCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                    bezierCtx.fill();
+                });
+                return;
+            }
+            
+            // Draw control polygon
+            bezierCtx.strokeStyle = '#ddd';
+            bezierCtx.lineWidth = 1;
+            bezierCtx.setLineDash([5, 5]);
+            bezierCtx.beginPath();
+            bezierCtx.moveTo(bezierPoints[0].x, bezierPoints[0].y);
+            for (let i = 1; i < bezierPoints.length; i++) {
+                bezierCtx.lineTo(bezierPoints[i].x, bezierPoints[i].y);
+            }
+            bezierCtx.stroke();
+            bezierCtx.setLineDash([]);
+            
+            // Draw Bézier curve
+            bezierCtx.strokeStyle = '#667eea';
+            bezierCtx.lineWidth = 3;
+            bezierCtx.beginPath();
+            for (let i = 0; i <= bezierResolution; i++) {
+                const t = i / bezierResolution;
+                const pt = deCasteljau(bezierPoints, bezierWeights, t);
+                if (i === 0) {
+                    bezierCtx.moveTo(pt.x, pt.y);
+                } else {
+                    bezierCtx.lineTo(pt.x, pt.y);
+                }
+            }
+            bezierCtx.stroke();
+            
+            // Draw control points
+            bezierPoints.forEach((p, i) => {
+                bezierCtx.fillStyle = '#667eea';
+                bezierCtx.beginPath();
+                bezierCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                bezierCtx.fill();
+                bezierCtx.fillStyle = '#fff';
+                bezierCtx.font = '10px sans-serif';
+                bezierCtx.fillText(i, p.x - 3, p.y + 3);
+            });
+        }
+        
+        function updateBezierPointsList() {
+            const list = document.getElementById('bezierPoints');
+            list.innerHTML = '';
+            bezierPoints.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'point-item';
+                div.innerHTML = `
+                    <span>P${i}: (${p.x.toFixed(0)}, ${p.y.toFixed(0)})</span>
+                    <input type="number" value="${bezierWeights[i].toFixed(2)}" step="0.1" 
+                           style="width: 70px;" onchange="updateBezierWeight(${i}, this.value)">
+                `;
+                list.appendChild(div);
+            });
+        }
+        
+        function updateBezierWeight(index, value) {
+            bezierWeights[index] = parseFloat(value) || 1.0;
+            drawBezier();
+        }
+        
+        function updateBezierRes(value) {
+            bezierResolution = parseInt(value);
+            document.getElementById('bezierResValue').textContent = value;
+            drawBezier();
+        }
+        
+        function clearBezier() {
+            bezierPoints = [];
+            bezierWeights = [];
+            drawBezier();
+            updateBezierPointsList();
+        }
+        
+        function exportBezier() {
+            const data = {
+                type: 'bezier',
+                points: bezierPoints,
+                weights: bezierWeights,
+                resolution: bezierResolution
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bezier_curve.json';
+            a.click();
+        }
+        
+        // ============= B-SPLINE CURVES =============
+        const splineCanvas = document.getElementById('splineCanvas');
+        const splineCtx = splineCanvas.getContext('2d');
+        let splinePoints = [];
+        let splineDragging = null;
+        let splineResolution = 100;
+        let splineDegree = 3;
+        
+        splineCanvas.addEventListener('mousedown', (e) => {
+            const rect = splineCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            for (let i = 0; i < splinePoints.length; i++) {
+                const p = splinePoints[i];
+                if (Math.hypot(p.x - x, p.y - y) < 8) {
+                    splineDragging = i;
+                    return;
+                }
+            }
+            
+            splinePoints.push({x, y});
+            drawSpline();
+            updateSplinePointsList();
+        });
+        
+        splineCanvas.addEventListener('mousemove', (e) => {
+            if (splineDragging !== null) {
+                const rect = splineCanvas.getBoundingClientRect();
+                splinePoints[splineDragging].x = e.clientX - rect.left;
+                splinePoints[splineDragging].y = e.clientY - rect.top;
+                drawSpline();
+                updateSplinePointsList();
+            }
+        });
+        
+        splineCanvas.addEventListener('mouseup', () => {
+            splineDragging = null;
+        });
+        
+        function generateKnotVector(n, p) {
+            const m = n + p + 1;
+            const knots = [];
+            for (let i = 0; i < m; i++) {
+                if (i < p) knots.push(0);
+                else if (i > n) knots.push(n - p + 1);
+                else knots.push(i - p + 1);
+            }
+            return knots;
+        }
+        
+        function basisFunction(i, p, u, knots) {
+            if (p === 0) {
+                return (u >= knots[i] && u < knots[i + 1]) ? 1.0 : 0.0;
+            }
+            
+            let left = 0.0, right = 0.0;
+            
+            if (knots[i + p] !== knots[i]) {
+                left = ((u - knots[i]) / (knots[i + p] - knots[i])) * basisFunction(i, p - 1, u, knots);
+            }
+            
+            if (knots[i + p + 1] !== knots[i + 1]) {
+                right = ((knots[i + p + 1] - u) / (knots[i + p + 1] - knots[i + 1])) * basisFunction(i + 1, p - 1, u, knots);
+            }
+            
+            return left + right;
+        }
+        
+        function evaluateBSpline(points, p, u, knots) {
+            let x = 0, y = 0;
+            for (let i = 0; i < points.length; i++) {
+                const N = basisFunction(i, p, u, knots);
+                x += N * points[i].x;
+                y += N * points[i].y;
+            }
+            return {x, y};
+        }
+        
+        function drawSpline() {
+            splineDegree = parseInt(document.getElementById('splineDegree').value);
+            splineCtx.clearRect(0, 0, splineCanvas.width, splineCanvas.height);
+            
+            if (splinePoints.length < splineDegree + 1) {
+                splinePoints.forEach((p, i) => {
+                    splineCtx.fillStyle = '#764ba2';
+                    splineCtx.beginPath();
+                    splineCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                    splineCtx.fill();
+                });
+                return;
+            }
+            
+            // Draw control polygon
+            splineCtx.strokeStyle = '#ddd';
+            splineCtx.lineWidth = 1;
+            splineCtx.setLineDash([5, 5]);
+            splineCtx.beginPath();
+            splineCtx.moveTo(splinePoints[0].x, splinePoints[0].y);
+            for (let i = 1; i < splinePoints.length; i++) {
+                splineCtx.lineTo(splinePoints[i].x, splinePoints[i].y);
+            }
+            splineCtx.stroke();
+            splineCtx.setLineDash([]);
+            
+            // Draw B-Spline
+            const n = splinePoints.length - 1;
+            const knots = generateKnotVector(n, splineDegree);
+            const uMax = knots[knots.length - splineDegree - 1];
+            
+            splineCtx.strokeStyle = '#764ba2';
+            splineCtx.lineWidth = 3;
+            splineCtx.beginPath();
+            for (let i = 0; i <= splineResolution; i++) {
+                const u = (i / splineResolution) * uMax;
+                const pt = evaluateBSpline(splinePoints, splineDegree, u, knots);
+                if (i === 0) {
+                    splineCtx.moveTo(pt.x, pt.y);
+                } else {
+                    splineCtx.lineTo(pt.x, pt.y);
+                }
+            }
+            splineCtx.stroke();
+            
+            // Draw control points
+            splinePoints.forEach((p, i) => {
+                splineCtx.fillStyle = '#764ba2';
+                splineCtx.beginPath();
+                splineCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                splineCtx.fill();
+                splineCtx.fillStyle = '#fff';
+                splineCtx.font = '10px sans-serif';
+                splineCtx.fillText(i, p.x - 3, p.y + 3);
+            });
+        }
+        
+        function updateSplinePointsList() {
+            const list = document.getElementById('splinePoints');
+            list.innerHTML = '';
+            splinePoints.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'point-item';
+                div.innerHTML = `<span>P${i}: (${p.x.toFixed(0)}, ${p.y.toFixed(0)})</span>`;
+                list.appendChild(div);
+            });
+        }
+        
+        function updateSplineRes(value) {
+            splineResolution = parseInt(value);
+            document.getElementById('splineResValue').textContent = value;
+            drawSpline();
+        }
+        
+        function clearSpline() {
+            splinePoints = [];
+            drawSpline();
+            updateSplinePointsList();
+        }
+        
+        function copyFromBezier() {
+            splinePoints = bezierPoints.map(p => ({...p}));
+            drawSpline();
+            updateSplinePointsList();
+        }
+        
+        function exportSpline() {
+            const data = {
+                type: 'bspline',
+                points: splinePoints,
+                degree: splineDegree,
+                resolution: splineResolution
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spline_curve.json';
+            a.click();
+        }
+        
+        // ============= SURFACE OF REVOLUTION =============
+        const profileCanvas = document.getElementById('profileCanvas');
+        const profileCtx = profileCanvas.getContext('2d');
+        let profilePoints = [];
+        let profileDragging = null;
+        let scene3d, camera3d, renderer3d, mesh3d;
+        let revAngle = 360;
+        let revSubdiv = 32;
+        
+        profileCanvas.addEventListener('mousedown', (e) => {
+            const rect = profileCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            for (let i = 0; i < profilePoints.length; i++) {
+                const p = profilePoints[i];
+                if (Math.hypot(p.x - x, p.y - y) < 8) {
+                    profileDragging = i;
+                    return;
+                }
+            }
+            
+            profilePoints.push({x, y});
+            drawProfile();
+        });
+        
+        profileCanvas.addEventListener('mousemove', (e) => {
+            if (profileDragging !== null) {
+                const rect = profileCanvas.getBoundingClientRect();
+                profilePoints[profileDragging].x = e.clientX - rect.left;
+                profilePoints[profileDragging].y = e.clientY - rect.top;
+                drawProfile();
+            }
+        });
+        
+        profileCanvas.addEventListener('mouseup', () => {
+            profileDragging = null;
+        });
+        
+        function drawProfile() {
+            profileCtx.clearRect(0, 0, profileCanvas.width, profileCanvas.height);
+            
+            // Draw axis
+            profileCtx.strokeStyle = '#ff6b6b';
+            profileCtx.lineWidth = 2;
+            profileCtx.setLineDash([5, 5]);
+            profileCtx.beginPath();
+            profileCtx.moveTo(profileCanvas.width / 2, 0);
+            profileCtx.lineTo(profileCanvas.width / 2, profileCanvas.height);
+            profileCtx.stroke();
+            profileCtx.setLineDash([]);
+            
+            if (profilePoints.length < 2) {
+                profilePoints.forEach((p, i) => {
+                    profileCtx.fillStyle = '#667eea';
+                    profileCtx.beginPath();
+                    profileCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                    profileCtx.fill();
+                });
+                return;
+            }
+            
+            // Draw control polygon
+            profileCtx.strokeStyle = '#ddd';
+            profileCtx.lineWidth = 1;
+            profileCtx.setLineDash([5, 5]);
+            profileCtx.beginPath();
+            profileCtx.moveTo(profilePoints[0].x, profilePoints[0].y);
+            for (let i = 1; i < profilePoints.length; i++) {
+                profileCtx.lineTo(profilePoints[i].x, profilePoints[i].y);
+            }
+            profileCtx.stroke();
+            profileCtx.setLineDash([]);
+            
+            // Draw profile curve
+            const curveType = document.getElementById('curveType').value;
+            const curve = getProfileCurve(curveType);
+            
+            profileCtx.strokeStyle = '#667eea';
+            profileCtx.lineWidth = 3;
+            profileCtx.beginPath();
+            for (let i = 0; i <= 100; i++) {
+                const t = i / 100;
+                const pt = curve[Math.floor(t * (curve.length - 1))];
+                if (i === 0) {
+                    profileCtx.moveTo(pt.x, pt.y);
+                } else {
+                    profileCtx.lineTo(pt.x, pt.y);
+                }
+            }
+            profileCtx.stroke();
+            
+            // Draw control points
+            profilePoints.forEach((p, i) => {
+                profileCtx.fillStyle = '#667eea';
+                profileCtx.beginPath();
+                profileCtx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                profileCtx.fill();
+                profileCtx.fillStyle = '#fff';
+                profileCtx.font = '10px sans-serif';
+                profileCtx.fillText(i, p.x - 3, p.y + 3);
+            });
+        }
+        
+        function getProfileCurve(type) {
+            const steps = 100;
+            const curve = [];
+            
+            if (type === 'bezier') {
+                const weights = new Array(profilePoints.length).fill(1);
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    curve.push(deCasteljau(profilePoints, weights, t));
+                }
+            } else {
+                const p = 3;
+                if (profilePoints.length < p + 1) {
+                    return profilePoints;
+                }
+                const n = profilePoints.length - 1;
+                const knots = generateKnotVector(n, p);
+                const uMax = knots[knots.length - p - 1];
+                
+                for (let i = 0; i <= steps; i++) {
+                    const u = (i / steps) * uMax;
+                    curve.push(evaluateBSpline(profilePoints, p, u, knots));
+                }
+            }
+            
+            return curve;
+        }
+        
+        function clearProfile() {
+            profilePoints = [];
+            drawProfile();
+            if (mesh3d) {
+                scene3d.remove(mesh3d);
+                mesh3d = null;
+            }
+        }
+        
+        function updateRevAngle(value) {
+            revAngle = parseInt(value);
+            document.getElementById('revAngleValue').textContent = value;
+        }
+        
+        function updateRevSubdiv(value) {
+            revSubdiv = parseInt(value);
+            document.getElementById('revSubdivValue').textContent = value;
+        }
+        
+        function generateSurface() {
+            if (profilePoints.length < 2) {
+                alert('Adicione pelo menos 2 pontos ao perfil!');
+                return;
+            }
+            
+            const curveType = document.getElementById('curveType').value;
+            const axis = document.getElementById('revAxis').value;
+            const profile = getProfileCurve(curveType);
+            
+            // Initialize Three.js scene if needed
+            if (!scene3d) {
+                initScene3D();
+            }
+            
+            // Remove old mesh
+            if (mesh3d) {
+                scene3d.remove(mesh3d);
+            }
+            
+            // Generate revolution surface
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const indices = [];
+            
+            const angleStep = (revAngle * Math.PI / 180) / revSubdiv;
+            const centerX = profileCanvas.width / 2;
+            
+            for (let i = 0; i <= revSubdiv; i++) {
+                const angle = i * angleStep;
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                
+                for (let j = 0; j < profile.length; j++) {
+                    const p = profile[j];
+                    const r = Math.abs(p.x - centerX) / 20;
+                    const h = (profileCanvas.height - p.y) / 20 - 12.5;
+                    
+                    if (axis === 'y') {
+                        vertices.push(r * cos, h, r * sin);
+                    } else if (axis === 'x') {
+                        vertices.push(h, r * cos, r * sin);
+                    } else {
+                        vertices.push(r * cos, r * sin, h);
+                    }
+                }
+            }
+            
+            for (let i = 0; i < revSubdiv; i++) {
+                for (let j = 0; j < profile.length - 1; j++) {
+                    const a = i * profile.length + j;
+                    const b = a + profile.length;
+                    const c = a + 1;
+                    const d = b + 1;
+                    
+                    indices.push(a, b, c);
+                    indices.push(c, b, d);
+                }
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x667eea,
+                side: THREE.DoubleSide,
+                flatShading: false
+            });
+            
+            mesh3d = new THREE.Mesh(geometry, material);
+            scene3d.add(mesh3d);
+            
+            animate3d();
+        }
+        
+        function initScene3D() {
+            const container = document.getElementById('canvas3dContainer');
+            container.innerHTML = '<div id="canvas3d"></div>';
+            
+            scene3d = new THREE.Scene();
+            scene3d.background = new THREE.Color(0xf0f0f0);
+            
+            camera3d = new THREE.PerspectiveCamera(60, container.offsetWidth / 600, 0.1, 1000);
+            camera3d.position.set(15, 10, 15);
+            camera3d.lookAt(0, 0, 0);
+            
+            renderer3d = new THREE.WebGLRenderer({antialias: true});
+            renderer3d.setSize(container.offsetWidth, 600);
+            document.getElementById('canvas3d').appendChild(renderer3d.domElement);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene3d.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            scene3d.add(directionalLight);
+            
+            const gridHelper = new THREE.GridHelper(30, 30);
+            scene3d.add(gridHelper);
+            
+            const axesHelper = new THREE.AxesHelper(15);
+            scene3d.add(axesHelper);
+            
+            let isDragging = false;
+            let previousMousePosition = {x: 0, y: 0};
+            
+            renderer3d.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = {x: e.clientX, y: e.clientY};
+            });
+            
+            renderer3d.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging && mesh3d) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    mesh3d.rotation.y += deltaX * 0.01;
+                    mesh3d.rotation.x += deltaY * 0.01;
+                    
+                    previousMousePosition = {x: e.clientX, y: e.clientY};
+                }
+            });
+            
+            renderer3d.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            renderer3d.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY * 0.01;
+                camera3d.position.multiplyScalar(1 + delta * 0.1);
+            });
+        }
+        
+        function animate3d() {
+            if (!scene3d) return;
+            requestAnimationFrame(animate3d);
+            if (mesh3d) {
+                mesh3d.rotation.y += 0.005;
+            }
+            renderer3d.render(scene3d, camera3d);
+        }
+        
+        function exportSurface() {
+            if (!mesh3d) {
+                alert('Gere uma superfície primeiro!');
+                return;
+            }
+            
+            const geometry = mesh3d.geometry;
+            const vertices = geometry.attributes.position.array;
+            const indices = geometry.index.array;
+            
+            let obj = '# Surface of Revolution\n';
+            obj += '# Generated by Computer Graphics Project\n\n';
+            
+            for (let i = 0; i < vertices.length; i += 3) {
+                obj += `v ${vertices[i]} ${vertices[i+1]} ${vertices[i+2]}\n`;
+            }
+            
+            obj += '\n';
+            
+            for (let i = 0; i < indices.length; i += 3) {
+                obj += `f ${indices[i]+1} ${indices[i+1]+1} ${indices[i+2]+1}\n`;
+            }
+            
+            const blob = new Blob([obj], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'surface.obj';
+            a.click();
+        }
+        
+        // ============= ALUS FLIGHT =============
+        let alusScene, alusCamera, alusRenderer, alusBird, alusPath, alusLine;
+        let alusAnimationId = null;
+        let alusProgress = 0;
+        let alusCurve = [];
+        let alusParams = {
+            cycles: 75,
+            direction: 'left',
+            speed: 1.0,
+            maxHeight: 50
+        };
+        
+        function fibonacci(n) {
+            const fib = [1, 1];
+            for (let i = 2; i < n; i++) {
+                fib.push(fib[i-1] + fib[i-2]);
+            }
+            return fib;
+        }
+        
+        function generateAlusTrajectory() {
+            const PHI = 1.618033988749895;
+            const cycles = alusParams.cycles;
+            const fib = fibonacci(cycles);
+            const maxFib = fib[fib.length - 1];
+            
+            const points = [];
+            let angle = 0;
+            const angleIncrement = PHI * 2 * Math.PI / cycles;
+            const directionMultiplier = alusParams.direction === 'left' ? 1 : -1;
+            
+            for (let i = 0; i < cycles; i++) {
+                const t = i / (cycles - 1);
+                const radius = (fib[i] / maxFib) * 30;
+                
+                // Height follows a smooth curve: up then down
+                let height;
+                if (t < 0.5) {
+                    height = (t * 2) * alusParams.maxHeight;
+                } else {
+                    height = (2 - t * 2) * alusParams.maxHeight;
+                }
+                
+                const x = radius * Math.cos(angle * directionMultiplier);
+                const z = radius * Math.sin(angle * directionMultiplier);
+                const y = height;
+                
+                points.push(new THREE.Vector3(x, y, z));
+                angle += angleIncrement;
+            }
+            
+            // Create smooth curve using Catmull-Rom
+            const curve = new THREE.CatmullRomCurve3(points);
+            curve.tension = 0.5;
+            
+            // Sample curve
+            alusCurve = curve.getPoints(cycles * 10);
+            
+            return curve;
+        }
+        
+        function initAlusScene() {
+            const container = document.getElementById('alusCanvas3dContainer');
+            container.innerHTML = '<div id="alusCanvas3d" style="width: 100%; height: 600px;"></div>';
+            
+            alusScene = new THREE.Scene();
+            alusScene.background = new THREE.Color(0x87ceeb);
+            alusScene.fog = new THREE.Fog(0x87ceeb, 50, 200);
+            
+            alusCamera = new THREE.PerspectiveCamera(60, container.offsetWidth / 600, 0.1, 1000);
+            alusCamera.position.set(50, 40, 50);
+            alusCamera.lookAt(0, 20, 0);
+            
+            alusRenderer = new THREE.WebGLRenderer({antialias: true});
+            alusRenderer.setSize(container.offsetWidth, 600);
+            document.getElementById('alusCanvas3d').appendChild(alusRenderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            alusScene.add(ambientLight);
+            
+            const sunLight = new THREE.DirectionalLight(0xffffaa, 0.8);
+            sunLight.position.set(50, 50, 50);
+            alusScene.add(sunLight);
+            
+            // Ground
+            const groundGeometry = new THREE.CircleGeometry(80, 32);
+            const groundMaterial = new THREE.MeshLambertMaterial({color: 0x90EE90, side: THREE.DoubleSide});
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.1;
+            alusScene.add(ground);
+            
+            // Create Alus (bird)
+            const birdGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const birdMaterial = new THREE.MeshPhongMaterial({color: 0xff6b9d, emissive: 0xff1744, emissiveIntensity: 0.3});
+            alusBird = new THREE.Mesh(birdGeometry, birdMaterial);
+            alusScene.add(alusBird);
+            
+            // Add wings
+            const wingGeometry = new THREE.ConeGeometry(0.5, 1.5, 8);
+            const wingMaterial = new THREE.MeshPhongMaterial({color: 0xffa0c0});
+            
+            const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            leftWing.position.set(-1, 0, 0);
+            leftWing.rotation.z = Math.PI / 2;
+            alusBird.add(leftWing);
+            
+            const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            rightWing.position.set(1, 0, 0);
+            rightWing.rotation.z = -Math.PI / 2;
+            alusBird.add(rightWing);
+            
+            // Generate and display trajectory
+            const curve = generateAlusTrajectory();
+            const pathGeometry = new THREE.BufferGeometry().setFromPoints(alusCurve);
+            const pathMaterial = new THREE.LineBasicMaterial({
+                color: 0xffdd00,
+                linewidth: 2,
+                opacity: 0.6,
+                transparent: true
+            });
+            alusLine = new THREE.Line(pathGeometry, pathMaterial);
+            alusScene.add(alusLine);
+            
+            // Camera controls
+            let isDragging = false;
+            let previousMousePosition = {x: 0, y: 0};
+            
+            alusRenderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = {x: e.clientX, y: e.clientY};
+            });
+            
+            alusRenderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    const radius = alusCamera.position.length();
+                    const theta = Math.atan2(alusCamera.position.x, alusCamera.position.z);
+                    const phi = Math.acos(alusCamera.position.y / radius);
+                    
+                    const newTheta = theta + deltaX * 0.01;
+                    const newPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi + deltaY * 0.01));
+                    
+                    alusCamera.position.x = radius * Math.sin(newPhi) * Math.sin(newTheta);
+                    alusCamera.position.y = radius * Math.cos(newPhi);
+                    alusCamera.position.z = radius * Math.sin(newPhi) * Math.cos(newTheta);
+                    alusCamera.lookAt(0, 20, 0);
+                    
+                    previousMousePosition = {x: e.clientX, y: e.clientY};
+                }
+            });
+            
+            alusRenderer.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            alusRenderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY * 0.001;
+                alusCamera.position.multiplyScalar(1 + delta);
+            });
+        }
+        
+        function animateAlus() {
+            if (!alusScene) return;
+            
+            alusAnimationId = requestAnimationFrame(animateAlus);
+            
+            if (alusCurve.length > 0 && alusProgress <= 1) {
+                const index = Math.floor(alusProgress * (alusCurve.length - 1));
+                const point = alusCurve[index];
+                
+                alusBird.position.copy(point);
+                
+                // Make bird face direction of travel
+                if (index < alusCurve.length - 1) {
+                    const nextPoint = alusCurve[index + 1];
+                    alusBird.lookAt(nextPoint);
+                }
+                
+                // Animate wings
+                const wingAnimation = Math.sin(Date.now() * 0.01) * 0.3;
+                alusBird.children.forEach(wing => {
+                    wing.rotation.y = wingAnimation;
+                });
+                
+                // Update progress
+                alusProgress += 0.0005 * alusParams.speed;
+                
+                // Update camera to follow bird
+                const offset = new THREE.Vector3(20, 15, 20);
+                const targetPos = point.clone().add(offset);
+                alusCamera.position.lerp(targetPos, 0.02);
+                alusCamera.lookAt(point);
+            }
+            
+            alusRenderer.render(alusScene, alusCamera);
+        }
+        
+        function startAlusFlight() {
+            if (!alusScene) {
+                initAlusScene();
+            }
+            alusProgress = 0;
+            animateAlus();
+        }
+        
+        function pauseAlusFlight() {
+            if (alusAnimationId) {
+                cancelAnimationFrame(alusAnimationId);
+                alusAnimationId = null;
+            }
+        }
+        
+        function resetAlusFlight() {
+            pauseAlusFlight();
+            alusProgress = 0;
+            if (alusScene) {
+                alusScene.remove(alusLine);
+                const curve = generateAlusTrajectory();
+                const pathGeometry = new THREE.BufferGeometry().setFromPoints(alusCurve);
+                const pathMaterial = new THREE.LineBasicMaterial({
+                    color: 0xffdd00,
+                    linewidth: 2,
+                    opacity: 0.6,
+                    transparent: true
+                });
+                alusLine = new THREE.Line(pathGeometry, pathMaterial);
+                alusScene.add(alusLine);
+                
+                if (alusCurve.length > 0) {
+                    alusBird.position.copy(alusCurve[0]);
+                }
+            }
+        }
+        
+        function updateAlusCycles(value) {
+            alusParams.cycles = parseInt(value);
+            document.getElementById('alusCyclesValue').textContent = value;
+            resetAlusFlight();
+        }
+        
+        function updateAlusDirection() {
+            alusParams.direction = document.getElementById('alusDirection').value;
+            resetAlusFlight();
+        }
+        
+        function updateAlusSpeed(value) {
+            alusParams.speed = parseFloat(value);
+            document.getElementById('alusSpeedValue').textContent = value;
+        }
+        
+        function updateAlusHeight(value) {
+            alusParams.maxHeight = parseFloat(value);
+            document.getElementById('alusHeightValue').textContent = value;
+            resetAlusFlight();
+        }
+        
+        // Initialize
+        drawBezier();
+        drawSpline();
+        drawProfile();
+    </script>
+</body>
+</html>
