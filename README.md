@@ -130,9 +130,3 @@ Se desejar, posso adicionar:
 * Sistema de colisão e física simples
 * Interface renovada com sliders
 * Sombras e materiais realistas
-
----
-
-## ✔ Suporte
-
-Se quiser evoluir o código, otimizar, separar arquivos ou adicionar novas animações, posso fazer tudo diretamente.
